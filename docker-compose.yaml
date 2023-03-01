@@ -1,0 +1,26 @@
+version: "3"
+
+services:
+  db:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./:/users_db
+      # - ./tests:/tests
+    depends_on:
+      - postgres
+  
+  postgres:
+    image: postgres:9.6
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "54321:5432"
