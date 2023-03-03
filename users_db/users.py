@@ -61,3 +61,11 @@ def delete_user(
     db_conn=None,
 ):
     return delete(users).where(users.c.id == user_id)
+
+
+@db_connection
+def bulk_delete_users(
+    user_ids,
+    db_conn=None,
+):
+    return delete(users).where(users.c.id.in_(user_ids))

@@ -28,9 +28,13 @@ def db_connection(f):
                 if isinstance(r, (dict, list)):
                     # post-process data here, for example excluding sensitive rows
                     result = r
-                elif isinstance(r, (Insert, Update, Delete)):
+                elif isinstance(r, (Insert, Update)):
                     result = connection.execute(r.returning(r.table.c.id))
                     result = result.one()[0]
+                    connection.commit()
+                elif isinstance(r, Delete):
+                    result = connection.execute(r)
+                    result = result.rowcount
                     connection.commit()
 
                 return result

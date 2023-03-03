@@ -4,7 +4,14 @@ from sqlalchemy import create_engine, select, delete
 
 from users_db.config import get_postgres_uri
 from users_db.schema import users
-from users_db.users import create_user, get_user, get_users, update_user, delete_user
+from users_db.users import (
+    create_user,
+    get_user,
+    get_users,
+    update_user,
+    delete_user,
+    bulk_delete_users,
+)
 
 
 @pytest.fixture(scope="session")
@@ -107,6 +114,32 @@ def test_delete_users(db_connection):
     )
 
     assert len(result) == 0
+
+
+def test_bulk_delete_users(db_connection):
+    user_ids = []
+    for i in range(10):
+        user_ids.append(
+            create_user(
+                **{
+                    "first_name": "John",
+                    "middle_name": "E.",
+                    "last_name": "Doe",
+                }
+            )
+        )
+    deleted_count = bulk_delete_users(user_ids)
+    assert deleted_count == len(user_ids)
+    result = (
+        db_connection.execute(select(users).where(users.c.id.in_(user_ids)))
+        .mappings()
+        .all()
+    )
+    assert len(result) == 0
+
+    # clean up
+    db_connection.execute(delete(users).where(users.c.id.in_(user_ids)))
+    db_connection.commit()
 
 
 # bad cases
