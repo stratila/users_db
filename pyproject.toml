@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "users-db"
+version = "0.0.1"
+description = "user_db is a database package for user CRUD operations"
+authors = ["Bohdan Stratila <bogdanstratila@icloud.com>"]
+readme = "README.md"
+packages = [{include = "users_db"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+sqlalchemy = "^2.0.4"
+alembic = "1.9.4"
+pytest = "7.2.1"
+black = "23.1.0"
+flake8 = "6.0.0"
+psycopg2-binary = "2.9.5"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
