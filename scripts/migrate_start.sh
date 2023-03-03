@@ -2,5 +2,5 @@
 
 python scripts/check_postgres_accept_connections.py
 alembic upgrade head
-pytest 
+pytest tests
 tail -f /dev/null
