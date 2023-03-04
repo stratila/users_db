@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "users-db"
-version = "0.0.2"
+version = "0.0.3"
 description = "user_db is a database package for user CRUD operations"
 authors = ["Bohdan Stratila <bogdanstratila@icloud.com>"]
 readme = "README.md"
@@ -14,6 +14,12 @@ pytest = "7.2.1"
 black = "23.1.0"
 flake8 = "6.0.0"
 psycopg2-binary = "2.9.5"
+click = "^8.1.3"
+
+[tool.poetry.scripts]
+alembic_upgrade = 'users_db.commands:db_upgrade_cmd'
+alembic_downgrade = 'users_db.commands:db_downgrade_cmd'
+alembic_current= 'users_db.commands:db_current_cmd'
 
 
 [build-system]
