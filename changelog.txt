@@ -10,3 +10,5 @@ v0.0.5   2023-05-03
     - Edit alembic.ini
 v0.0.6   2023-05-03
     - users_db.commands path module logic changes
+v0.0.7   2023-05-16
+    - add changes to users_db.config
