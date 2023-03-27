@@ -22,3 +22,6 @@ def upgrade(revision="head"):
 
 def downgrade(revision):
     command.downgrade(ALEMBIC_CFG, revision)
+
+def revision(autogenerate=False, message=None):
+    command.revision(ALEMBIC_CFG, message=message, autogenerate=autogenerate)
