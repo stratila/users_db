@@ -2,9 +2,11 @@ FROM python:3.10-slim-buster AS base
 
 RUN mkdir -p /users_db
 RUN mkdir -p /tests
+RUN mkdir -p /scripts
 
 COPY ./users_db /users_db/
 COPY ./tests /tests/
+COPY ./scripts /scripts/
 COPY ./pyproject.toml /
 COPY ./poetry.lock /
 COPY ./README.md /
@@ -20,3 +22,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 FROM base AS development
 # install users_db as editable
 RUN pip install -e ./
+CMD [ "/scripts/migrate_start.sh" ]
