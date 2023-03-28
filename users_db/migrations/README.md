@@ -6,7 +6,7 @@
 
 3. If `commands.py` doesn't have the command you need, you'll have to add it in `migrations/__init__.py`, then define click command in `commands.py` and finally install it as a Poetry script
 
-4. In oder to create the migration, first you need to start containers `docker compose up -d`, make changes in the schema.py by defining the new models or changing the existing ones, and then run `docker compose exec alembic_revision --autogenerate -m "migration message"`.
+4. In oder to create the migration, first you need to start containers `docker compose up -d`, make changes in the schema.py by defining the new models or changing the existing ones, and then run `docker compose exec db alembic_revision --autogenerate=True -m "migration message"`.
 
 5. After that, you need to run `docker compose exec alembic_upgrade head` to apply the migration to the database.
 

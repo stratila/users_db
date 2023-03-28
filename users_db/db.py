@@ -1,4 +1,6 @@
 import logging
+from typing import Union
+from enum import Enum
 
 from functools import wraps
 
@@ -11,6 +13,39 @@ from users_db import config
 log = logging.getLogger(__name__)
 
 engine = create_engine(url=config.get_postgres_uri())
+
+
+REMOVE_KEYS = ["password"]
+
+
+def secure_result(result: Union[dict, list]):
+    """
+    secure_result removes sensitive rows from the result
+    """
+    if isinstance(result, dict):
+        for key in REMOVE_KEYS:
+            if key in result:
+                del result[key]
+    elif isinstance(result, list):
+        for item in result:
+            secure_result(item)
+
+    return result
+
+
+def serialize_enums(result: Union[dict, list]):
+    """
+    serialize_enums converts enums to strings
+    """
+    if isinstance(result, dict):
+        for key, value in result.items():
+            if isinstance(value, Enum):
+                result[key] = value.name
+    elif isinstance(result, list):
+        for item in result:
+            serialize_enums(item)
+
+    return result
 
 
 def db_connection(f):
@@ -37,6 +72,7 @@ def db_connection(f):
                     result = result.rowcount
                     connection.commit()
 
+                result = secure_result(serialize_enums(result))
                 return result
             except SQLAlchemyError as err:
                 log.error(f"Error: {err}")

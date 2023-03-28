@@ -1,13 +1,22 @@
 from sqlalchemy import insert, select, update, delete
 
 from users_db.db import db_connection
-from users_db.schema import users
+from users_db.schema import Role, users
+
+ROLE_SUPER_ADMIN = Role.SUPER_ADMIN.name
+ROLE_ADMIN = Role.ADMIN.name
+ROLE_USER = Role.USER.name
 
 
 @db_connection
-def create_user(first_name, middle_name, last_name, db_conn):
+def create_user(first_name, middle_name, last_name, email, password, role, db_conn):
     return insert(users).values(
-        first_name=first_name, middle_name=middle_name, last_name=last_name
+        first_name=first_name,
+        middle_name=middle_name,
+        last_name=last_name,
+        email=email,
+        password=password,
+        role=role,
     )
 
 
@@ -26,6 +35,7 @@ def get_users(
     first_name=None,
     middle_name=None,
     last_name=None,
+    email=None,
     db_conn=None,
 ):
     stmt = select(users)
@@ -40,6 +50,8 @@ def get_users(
         stmt = stmt.where(users.c.middle_name == middle_name)
     if last_name:
         stmt = stmt.where(users.c.last_name == last_name)
+    if email:
+        stmt = stmt.where(users.c.email == email)
 
     rows = db_conn.execute(stmt)
     rows = [dict(row) for row in rows.mappings().all()]

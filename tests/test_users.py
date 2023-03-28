@@ -25,8 +25,17 @@ def test_create_user(db_connection):
     first_name = "John"
     middle_name = None
     last_name = "Doe"
+    email = "email@email.com"
+    password = "password"
+    role = "USER"
+
     user_id = create_user(
-        first_name=first_name, middle_name=middle_name, last_name=last_name
+        first_name=first_name,
+        middle_name=middle_name,
+        last_name=last_name,
+        email=email,
+        password=password,
+        role=role,
     )
 
     result = (
@@ -34,10 +43,14 @@ def test_create_user(db_connection):
         .mappings()
         .one()
     )
+    result = dict(result)
     assert result["id"] == user_id
     assert result["first_name"] == first_name
     assert result["last_name"] == last_name
     assert result["middle_name"] == middle_name
+    assert result["email"] == email
+    assert result["password"] == password
+    assert result["role"].name == role
 
     # clean up
     db_connection.execute(delete(users).where(users.c.id == user_id))
@@ -45,13 +58,24 @@ def test_create_user(db_connection):
 
 
 def test_get_user(db_connection):
-    user_data = {"first_name": "John", "middle_name": "E.", "last_name": "Doe"}
+    user_data = {
+        "first_name": "John",
+        "middle_name": "E.",
+        "last_name": "Doe",
+        "email": "email@email.com",
+        "password": "password",
+        "role": "USER",
+    }
 
     user_id = create_user(**user_data)
     user = get_user(user_id)
 
     assert user["id"] == user_id
     for key in user_data.keys():
+        if key == "password":
+            # password should not be returned
+            user.get(key) is None
+            continue
         assert user[key] == user_data[key]
 
     # clean up
@@ -61,8 +85,22 @@ def test_get_user(db_connection):
 
 def test_get_users(db_connection):
     users_data = [
-        {"first_name": "John", "middle_name": "E.", "last_name": "Doe"},
-        {"first_name": "Madeline", "middle_name": "J.", "last_name": "Doe"},
+        {
+            "first_name": "John",
+            "middle_name": "E.",
+            "last_name": "Doe",
+            "role": "USER",
+            "email": "email@email.com",
+            "password": "password",
+        },
+        {
+            "first_name": "Madeline",
+            "middle_name": "J.",
+            "last_name": "Doe",
+            "role": "USER",
+            "email": "email@email.com",
+            "password": "password",
+        },
     ]
 
     user_ids = []
@@ -76,6 +114,10 @@ def test_get_users(db_connection):
         for user_data in users_data:
             if user["id"] == user_data["id"]:
                 for key in user_data.keys():
+                    if key == "password":
+                        # password should not be returned
+                        user.get(key) is None
+                        continue
                     assert user[key] == user_data[key]
 
     # clean up
@@ -85,7 +127,14 @@ def test_get_users(db_connection):
 
 
 def test_update_users(db_connection):
-    user_data = {"first_name": "John", "middle_name": "E.", "last_name": "Doe"}
+    user_data = {
+        "first_name": "John",
+        "middle_name": "E.",
+        "last_name": "Doe",
+        "role": "USER",
+        "email": "email@email.com",
+        "password": "password",
+    }
     update_user_data = {"middle_name": "Emmanuel"}
     user_id = create_user(**user_data)
     updated_user_id = update_user(user_id, **update_user_data)
@@ -94,6 +143,8 @@ def test_update_users(db_connection):
     assert updated_user["first_name"] == user_data["first_name"]
     assert updated_user["middle_name"] == update_user_data["middle_name"]
     assert updated_user["last_name"] == user_data["last_name"]
+    assert updated_user["role"] == user_data["role"]
+    assert updated_user["email"] == user_data["email"]
 
     # clean up
     db_connection.execute(delete(users).where(users.c.id == user_id))
@@ -102,7 +153,14 @@ def test_update_users(db_connection):
 
 def test_delete_users(db_connection):
     user_id = create_user(
-        **{"first_name": "John", "middle_name": "E.", "last_name": "Doe"}
+        **{
+            "first_name": "John",
+            "middle_name": "E.",
+            "last_name": "Doe",
+            "role": "USER",
+            "email": "email@email@.com",
+            "password": "password",
+        }
     )
     user_id = delete_user(user_id)
     assert user_id == user_id
@@ -125,6 +183,9 @@ def test_bulk_delete_users(db_connection):
                     "first_name": "John",
                     "middle_name": "E.",
                     "last_name": "Doe",
+                    "role": "USER",
+                    "email": f"email{i}@email.com",
+                    "password": "password",
                 }
             )
         )
@@ -146,7 +207,14 @@ def test_bulk_delete_users(db_connection):
 
 
 def test_bad_create_user(db_connection):
-    user_id = create_user(first_name=None, middle_name=None, last_name=None)
+    user_id = create_user(
+        first_name=None,
+        middle_name=None,
+        last_name=None,
+        email=None,
+        password=None,
+        role=None,
+    )
     assert user_id is None
     result = (
         db_connection.execute(select(users).where(users.c.id == user_id))

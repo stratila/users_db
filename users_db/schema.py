@@ -26,5 +26,7 @@ users = Table(
     Column("first_name", String(64), nullable=False),
     Column("middle_name", String(64), nullable=True),
     Column("last_name", String(64), nullable=False),
+    Column("email", String(64), nullable=False, unique=True),
+    Column("password", String(256), nullable=False),
     Column("role", Enum(Role), nullable=False),
 )
