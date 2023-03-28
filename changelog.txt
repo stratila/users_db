@@ -16,3 +16,5 @@ v0.0.8   2023-28-03
     - add migrations role and role_permission, add changes to users_db.config
 v0.0.9   2023-28-03
     - add password and email to users table
+v0.0.9   2023-28-03
+    - add get_hashed_password_by_email to users_db.users

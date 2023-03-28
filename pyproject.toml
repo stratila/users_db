@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "users-db"
-version = "0.0.9"
+version = "0.0.10"
 description = "user_db is a database package for user CRUD operations"
 authors = ["Bohdan Stratila <bogdanstratila@icloud.com>"]
 readme = "README.md"
