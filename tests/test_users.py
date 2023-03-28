@@ -7,6 +7,7 @@ from users_db.schema import users
 from users_db.users import (
     create_user,
     get_user,
+    get_hashed_password_by_email,
     get_users,
     update_user,
     delete_user,
@@ -77,6 +78,28 @@ def test_get_user(db_connection):
             user.get(key) is None
             continue
         assert user[key] == user_data[key]
+
+    # clean up
+    db_connection.execute(delete(users).where(users.c.id == user_id))
+    db_connection.commit()
+
+
+def test_get_hashed_password_by_email(db_connection):
+    user_data = {
+        "first_name": "John",
+        "middle_name": "E.",
+        "last_name": "Doe",
+        "email": "email@email.com",
+        "role": "USER",
+        "password": "hashed",
+    }
+
+    user_id = create_user(**user_data)
+    data = get_hashed_password_by_email(user_data["email"])
+
+    assert data["id"] == user_id
+    assert data["email"] == user_data["email"]
+    assert data["hashed_password"] == user_data["password"]
 
     # clean up
     db_connection.execute(delete(users).where(users.c.id == user_id))

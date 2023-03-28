@@ -29,6 +29,17 @@ def get_user(user_id, db_conn=None):
 
 
 @db_connection
+def get_hashed_password_by_email(email, db_conn=None):
+    stmt = select(
+        users.c.id, users.c.email, users.c.password.label("hashed_password")
+    ).where(users.c.email == email)
+    rows = db_conn.execute(stmt)
+    rows = rows.mappings().one()
+
+    return dict(rows)
+
+
+@db_connection
 def get_users(
     user_id=None,
     user_ids=None,
