@@ -16,7 +16,7 @@ role_permission = Table(
     Base.metadata,
     Column("id", Integer, primary_key=True),
     Column("role", Enum(Role), nullable=False),
-    Column("permission", String(100), nullable=False)
+    Column("permission", String(100), nullable=False, unique=True)
 )
 
 users = Table(

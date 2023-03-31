@@ -15,12 +15,6 @@ from users_db.users import (
 )
 
 
-@pytest.fixture(scope="session")
-def db_connection():
-    engine = create_engine(get_postgres_uri())
-    with engine.connect() as conn:
-        yield conn
-
 
 def test_create_user(db_connection):
     first_name = "John"

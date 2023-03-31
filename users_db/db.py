@@ -64,8 +64,8 @@ def db_connection(f):
                     # post-process data here, for example excluding sensitive rows
                     result = r
                 elif isinstance(r, (Insert, Update)):
-                    result = connection.execute(r.returning(r.table.c.id))
-                    result = result.one()[0]
+                    result = connection.execute(r.returning(r.table.c.id)).all()
+                    result = result[0][0] if len(result) == 1 else [r[0] for r in result]
                     connection.commit()
                 elif isinstance(r, Delete):
                     result = connection.execute(r)

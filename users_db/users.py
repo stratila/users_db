@@ -2,10 +2,11 @@ from sqlalchemy import insert, select, update, delete
 
 from users_db.db import db_connection
 from users_db.schema import Role, users
-
-ROLE_SUPER_ADMIN = Role.SUPER_ADMIN.name
-ROLE_ADMIN = Role.ADMIN.name
-ROLE_USER = Role.USER.name
+from users_db.role_permissions import (
+    ROLE_SUPER_ADMIN,
+    ROLE_ADMIN,
+    ROLE_USER,
+)
 
 
 @db_connection
