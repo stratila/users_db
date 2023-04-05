@@ -8,7 +8,7 @@
 
 4. In oder to create the migration, first you need to start containers `docker compose up -d`, make changes in the schema.py by defining the new models or changing the existing ones, and then run `docker compose exec db alembic_revision --autogenerate=True -m "migration message"`.
 
-5. After that, you need to run `docker compose exec alembic_upgrade head` to apply the migration to the database.
+5. After that, you need to run `docker compose exec db alembic_upgrade --revision head` to apply the migration to the database.
 
 
 TODO add the example of the migration for Enum, because alembic doesn't support the autogeneration for Enum

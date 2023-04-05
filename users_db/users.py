@@ -2,10 +2,11 @@ from sqlalchemy import insert, select, update, delete
 
 from users_db.db import db_connection
 from users_db.schema import Role, users
-
-ROLE_SUPER_ADMIN = Role.SUPER_ADMIN.name
-ROLE_ADMIN = Role.ADMIN.name
-ROLE_USER = Role.USER.name
+from users_db.role_permissions import (
+    ROLE_SUPER_ADMIN,
+    ROLE_ADMIN,
+    ROLE_USER,
+)
 
 
 @db_connection
@@ -47,6 +48,7 @@ def get_users(
     middle_name=None,
     last_name=None,
     email=None,
+    role=None,
     db_conn=None,
 ):
     stmt = select(users)
@@ -63,6 +65,8 @@ def get_users(
         stmt = stmt.where(users.c.last_name == last_name)
     if email:
         stmt = stmt.where(users.c.email == email)
+    if role:
+        stmt = stmt.where(users.c.role == role)
 
     rows = db_conn.execute(stmt)
     rows = [dict(row) for row in rows.mappings().all()]

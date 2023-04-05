@@ -15,13 +15,6 @@ from users_db.users import (
 )
 
 
-@pytest.fixture(scope="session")
-def db_connection():
-    engine = create_engine(get_postgres_uri())
-    with engine.connect() as conn:
-        yield conn
-
-
 def test_create_user(db_connection):
     first_name = "John"
     middle_name = None
@@ -160,9 +153,8 @@ def test_update_users(db_connection):
     }
     update_user_data = {"middle_name": "Emmanuel"}
     user_id = create_user(**user_data)
-    updated_user_id = update_user(user_id, **update_user_data)
-    assert user_id == updated_user_id
-    updated_user = get_user(user_id)
+    updated_user = update_user(user_id, **update_user_data)
+    assert updated_user["id"] == user_id
     assert updated_user["first_name"] == user_data["first_name"]
     assert updated_user["middle_name"] == update_user_data["middle_name"]
     assert updated_user["last_name"] == user_data["last_name"]

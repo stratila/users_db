@@ -22,6 +22,7 @@ def secure_result(result: Union[dict, list]):
     """
     secure_result removes sensitive rows from the result
     """
+
     if isinstance(result, dict):
         for key in REMOVE_KEYS:
             if key in result:
@@ -63,9 +64,20 @@ def db_connection(f):
                 if isinstance(r, (dict, list)):
                     # post-process data here, for example excluding sensitive rows
                     result = r
-                elif isinstance(r, (Insert, Update)):
-                    result = connection.execute(r.returning(r.table.c.id))
-                    result = result.one()[0]
+                elif isinstance(r, Insert):
+                    result = connection.execute(r.returning(r.table.c.id)).all()
+                    result = (
+                        result[0][0] if len(result) == 1 else [r[0] for r in result]
+                    )
+                    connection.commit()
+                elif isinstance(r, Update):
+                    # update returns the whole object
+                    result = connection.execute(r.returning(r.table)).all()
+                    result = (
+                        dict(result[0]._mapping)
+                        if len(result) == 1
+                        else [dict(r._mapping) for r in result]
+                    )
                     connection.commit()
                 elif isinstance(r, Delete):
                     result = connection.execute(r)
