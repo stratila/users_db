@@ -48,6 +48,7 @@ def get_users(
     middle_name=None,
     last_name=None,
     email=None,
+    role=None,
     db_conn=None,
 ):
     stmt = select(users)
@@ -64,6 +65,8 @@ def get_users(
         stmt = stmt.where(users.c.last_name == last_name)
     if email:
         stmt = stmt.where(users.c.email == email)
+    if role:
+        stmt = stmt.where(users.c.role == role)
 
     rows = db_conn.execute(stmt)
     rows = [dict(row) for row in rows.mappings().all()]

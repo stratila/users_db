@@ -73,12 +73,11 @@ def test_get_permissions_for_role(db_connection):
     permissions = ["read_test", "write_test"]
     permission_ids = create_permissions_for_role(ROLE_USER, permissions)
     row = get_permissions_for_role(ROLE_USER)
-    assert len(row) == 1
 
-    assert row[0]["role"] == ROLE_USER
-    assert len(row[0]["permissions"]) == len(permission_ids)
+    assert row["role"] == ROLE_USER
+    assert len(row["permissions"]) == len(permission_ids)
 
-    assert [dict(row) for row in row[0]["permissions"]] == [
+    assert [dict(row) for row in row["permissions"]] == [
         {"id": id, "permission": permission}
         for id, permission in zip(permission_ids, permissions)
     ]
@@ -92,7 +91,9 @@ def test_get_permissions_for_role(db_connection):
 def test_update_permissions_for_role(db_connection):
     permissions = ["read_test", "write_test"]
     permission_id = create_permission_for_role(ROLE_USER, permissions[0])
-    update_permissions_for_role(permission_id, permission="read_test_2")
+    updated_record = update_permissions_for_role(permission_id, permission="read_test_2")
+    assert updated_record["id"] == permission_id
+
     row = get_role_permission(permission_id)
     assert row["permission"] == "read_test_2"
 
@@ -115,4 +116,5 @@ def test_delete_role_permissions():
     create_permissions_for_role(ROLE_USER, permissions)
     delete_role_permissions(ROLE_USER)
     rows = get_permissions_for_role(ROLE_USER)
+    rows = rows or []
     assert len(rows) == 0

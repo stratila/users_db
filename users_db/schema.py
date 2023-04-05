@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import Table, Enum, Column, Integer, String
+from sqlalchemy import Table, Enum, Column, Integer, String, UniqueConstraint
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
@@ -16,7 +16,8 @@ role_permission = Table(
     Base.metadata,
     Column("id", Integer, primary_key=True),
     Column("role", Enum(Role), nullable=False),
-    Column("permission", String(100), nullable=False, unique=True)
+    Column("permission", String(100), nullable=False),
+    UniqueConstraint("role", "permission", name="role_permission_uq")
 )
 
 users = Table(

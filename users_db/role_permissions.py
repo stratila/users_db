@@ -53,9 +53,9 @@ def get_permissions_for_role(role: str, db_conn=None):
         .where(role_permission.c.role == role)
         .group_by(role_permission.c.role)
     )
-    rows = db_conn.execute(select_stmt)
-    rows = rows.mappings().all()
-    return [dict(row) for row in rows]
+    row = db_conn.execute(select_stmt)
+    row = row.mappings().one()
+    return dict(row)
 
 
 @db_connection
