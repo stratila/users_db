@@ -3,11 +3,6 @@ from users_db.db import base_transaction, thread_local
 from users_db.errors import DatabaseError, UserDatabaseError
 
 
-# TODO
-# add print statements to open_connection, close_connection, commit, rollback
-# test failed case when function raises exception, check rollback and stack is cleared
-
-
 class fake_transaction(base_transaction):
     def __init__(self, func):
         super().__init__(func)

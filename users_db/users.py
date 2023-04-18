@@ -68,6 +68,7 @@ def get_users(
         stmt = stmt.where(users.c.role == role)
 
     rows = db_execute(stmt, db_conn=db_conn)
+    rows = [rows] if isinstance(rows, dict) else rows
     return rows
 
 

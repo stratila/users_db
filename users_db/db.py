@@ -145,12 +145,10 @@ class db_transaction(base_transaction):
 
         if self.connection is None:
             self.connection = engine.connect()
-            print("Connection opened")
 
     def close_connection(self):
         if self.connection and not self.connection.closed:
             self.connection.close()
-            print("Connection closed")
 
     def rollback(self):
         if self.connection and not self.connection.closed:
