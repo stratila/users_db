@@ -1,11 +1,15 @@
+import abc
 import logging
+import threading
+
 from typing import Union
 from enum import Enum
 
 from functools import wraps
 
-from sqlalchemy import create_engine
+from sqlalchemy import Connection, create_engine
 from sqlalchemy.sql.dml import Insert, Update, Delete
+from sqlalchemy.sql.selectable import Select
 from sqlalchemy.exc import SQLAlchemyError
 
 from users_db import config
@@ -14,6 +18,7 @@ log = logging.getLogger(__name__)
 
 engine = create_engine(url=config.get_postgres_uri())
 
+thread_local = threading.local()
 
 REMOVE_KEYS = ["password"]
 
@@ -49,45 +54,125 @@ def serialize_enums(result: Union[dict, list]):
     return result
 
 
-def db_connection(f):
+def dict_or_list(result):
+    """Returns a dictionary or a list of dictionaries"""
+    return (
+        dict(result[0]._mapping)
+        if len(result) == 1
+        else [dict(r._mapping) for r in result]
+    )
+
+
+def id_or_ids_list(result):
+    return result[0][0] if len(result) == 1 else [r[0] for r in result]
+
+
+class base_transaction(abc.ABC):
+    def __init__(self, func):
+        self.func = func
+
+    def __call__(self, *args, **kwargs):
+        try:
+            if not hasattr(thread_local, "transaction_stack"):
+                thread_local.transaction_stack = []
+            self.open_connection()
+            thread_local.transaction_stack.append(self)
+            # execute a function and return a result
+            return self.func(*args, **kwargs, db_conn=self.connection)
+
+        except Exception as exc:
+            # rollback a transaction if an exception occurred and clear the stack by
+            # setting it to an empty list
+            thread_local.transaction_stack = []
+            self.rollback()
+            raise exc
+        finally:
+            if thread_local.transaction_stack:
+                if thread_local.transaction_stack[0] == self:
+                    self.commit()
+                    self.close_connection()
+                thread_local.transaction_stack.pop()
+
+    @abc.abstractmethod
+    def open_connection(self):
+        pass
+
+    @abc.abstractmethod
+    def close_connection(self):
+        pass
+
+    @abc.abstractmethod
+    def rollback(self):
+        pass
+
+    @abc.abstractmethod
+    def commit(self):
+        pass
+
+
+class db_transaction(base_transaction):
+    def __init__(self, func):
+        super().__init__(func)
+        self.connection = None
+
+    def open_connection(self):
+        # checks whether there is a transaction in the stack
+        transaction = (
+            thread_local.transaction_stack[-1]
+            if thread_local.transaction_stack
+            else None
+        )
+        if transaction:
+            self.connection = transaction.connection
+
+        if self.connection is None:
+            self.connection = engine.connect()
+            print("Connection opened")
+
+    def close_connection(self):
+        if self.connection:
+            self.connection.close()
+            self.connection = None
+            print("Connection closed")
+
+    def rollback(self):
+        if self.connection:
+            self.connection.rollback()
+
+    def commit(self):
+        if self.connection:
+            self.connection.commit()
+
+
+def db_execute(statement, db_conn: Connection):
     """
-    db_connection decorator supports executing select, insert, update, delete
-    operations with a single transaction; post-process data in a user friendly manner
+    db_connection function supports executing select, insert, update, delete
+    queries and post-process result data in a user friendly manner
     """
+    try:
+        if isinstance(statement, Select):
+            # post-process data here, for example excluding sensitive rows
+            result = db_conn.execute(statement).all()
+            result = dict_or_list(result) or None
 
-    @wraps(f)
-    def wrapped(*args, **kwargs):
-        with engine.connect() as connection:
-            try:
-                r = f(*args, **kwargs, db_conn=connection)
+        elif isinstance(statement, Insert):
+            # return the id of the inserted row or a list of ids
+            result = db_conn.execute(statement.returning(statement.table.c.id)).all()
+            result = id_or_ids_list(result)
 
-                if isinstance(r, (dict, list)):
-                    # post-process data here, for example excluding sensitive rows
-                    result = r
-                elif isinstance(r, Insert):
-                    result = connection.execute(r.returning(r.table.c.id)).all()
-                    result = (
-                        result[0][0] if len(result) == 1 else [r[0] for r in result]
-                    )
-                    connection.commit()
-                elif isinstance(r, Update):
-                    # update returns the whole object
-                    result = connection.execute(r.returning(r.table)).all()
-                    result = (
-                        dict(result[0]._mapping)
-                        if len(result) == 1
-                        else [dict(r._mapping) for r in result]
-                    )
-                    connection.commit()
-                elif isinstance(r, Delete):
-                    result = connection.execute(r)
-                    result = result.rowcount
-                    connection.commit()
+        elif isinstance(statement, Update):
+            # update returns the whole object or a list of objects
+            result = db_conn.execute(statement.returning(statement.table)).all()
+            result = dict_or_list(result)
 
-                result = secure_result(serialize_enums(result))
-                return result
-            except SQLAlchemyError as err:
-                log.error(f"Error: {err}")
-                connection.rollback()
+        elif isinstance(statement, Delete):
+            # return the number of deleted rows
+            result = db_conn.execute(statement)
+            result = result.rowcount
 
-    return wrapped
+        # post-process data here, for example excluding sensitive rows
+        result = secure_result(serialize_enums(result))
+        return result
+    except SQLAlchemyError as err:
+        # TODO handle common sqlalchemy errors
+        raise err
