@@ -5,14 +5,13 @@ import threading
 from typing import Union
 from enum import Enum
 
-from functools import wraps
-
 from sqlalchemy import Connection, create_engine
 from sqlalchemy.sql.dml import Insert, Update, Delete
 from sqlalchemy.sql.selectable import Select
 from sqlalchemy.exc import SQLAlchemyError
 
 from users_db import config
+from users_db.errors import DatabaseError, SqlAlchemyDatabaseError
 
 log = logging.getLogger(__name__)
 
@@ -75,23 +74,34 @@ class base_transaction(abc.ABC):
         try:
             if not hasattr(thread_local, "transaction_stack"):
                 thread_local.transaction_stack = []
-            self.open_connection()
+
+            self.connection = self.get_connection()
+            if not self.connection:
+                self.open_connection()
+
             thread_local.transaction_stack.append(self)
             # execute a function and return a result
             return self.func(*args, **kwargs, db_conn=self.connection)
 
-        except Exception as exc:
+        except DatabaseError as err:
             # rollback a transaction if an exception occurred and clear the stack by
             # setting it to an empty list
-            thread_local.transaction_stack = []
-            self.rollback()
-            raise exc
+
+            if thread_local.transaction_stack:
+                self.rollback()
+                self.close_connection()
+                thread_local.transaction_stack = []
+            raise err
         finally:
             if thread_local.transaction_stack:
                 if thread_local.transaction_stack[0] == self:
                     self.commit()
                     self.close_connection()
                 thread_local.transaction_stack.pop()
+
+    @abc.abstractmethod
+    def get_connection(self):
+        pass
 
     @abc.abstractmethod
     def open_connection(self):
@@ -115,6 +125,14 @@ class db_transaction(base_transaction):
         super().__init__(func)
         self.connection = None
 
+    def get_connection(self):
+        transaction = (
+            thread_local.transaction_stack[-1]
+            if thread_local.transaction_stack
+            else None
+        )
+        return transaction.connection if transaction else None
+
     def open_connection(self):
         # checks whether there is a transaction in the stack
         transaction = (
@@ -130,13 +148,12 @@ class db_transaction(base_transaction):
             print("Connection opened")
 
     def close_connection(self):
-        if self.connection:
+        if self.connection and not self.connection.closed:
             self.connection.close()
-            self.connection = None
             print("Connection closed")
 
     def rollback(self):
-        if self.connection:
+        if self.connection and not self.connection.closed:
             self.connection.rollback()
 
     def commit(self):
@@ -174,5 +191,6 @@ def db_execute(statement, db_conn: Connection):
         result = secure_result(serialize_enums(result))
         return result
     except SQLAlchemyError as err:
-        # TODO handle common sqlalchemy errors
-        raise err
+        # wrap SQLAlchemyError into a custom exception (DatabaseError) to handle it
+        # later base_transaction
+        raise SqlAlchemyDatabaseError(err)

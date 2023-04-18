@@ -1,4 +1,3 @@
-import random
 from sqlalchemy import insert, select, update, delete
 
 from users_db.db import db_execute, db_transaction
@@ -8,8 +7,6 @@ from users_db.role_permissions import (
     ROLE_ADMIN,
     ROLE_USER,
 )
-
-
 
 
 @db_transaction
@@ -100,4 +97,3 @@ def bulk_delete_users(
 ):
     stmt = delete(users).where(users.c.id.in_(user_ids))
     return db_execute(stmt, db_conn=db_conn)
-

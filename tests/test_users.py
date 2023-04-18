@@ -1,7 +1,6 @@
 import pytest
-import sqlalchemy
-from sqlalchemy import create_engine, select, delete
-from users_db.config import get_postgres_uri
+from sqlalchemy import select, delete
+from users_db.errors import DatabaseError
 from users_db.schema import users
 from users_db.users import (
     create_user,
@@ -221,8 +220,8 @@ def test_bulk_delete_users(db_connection):
 
 
 def test_bad_create_user(db_connection):
-    with pytest.raises(sqlalchemy.exc.IntegrityError):
-        user_id = create_user(
+    with pytest.raises(DatabaseError):
+        create_user(
             first_name=None,
             middle_name=None,
             last_name=None,
