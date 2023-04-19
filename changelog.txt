@@ -20,3 +20,5 @@ v0.0.10   2023-28-03
     - add get_hashed_password_by_email to users_db.users
 v0.0.11  2023-05-04
     - add crud operations for role_permissions table
+v0.0.12  2023-19-04
+    - add db_transaction decorator class, add common db exceptions

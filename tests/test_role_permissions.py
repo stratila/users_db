@@ -91,7 +91,9 @@ def test_get_permissions_for_role(db_connection):
 def test_update_permissions_for_role(db_connection):
     permissions = ["read_test", "write_test"]
     permission_id = create_permission_for_role(ROLE_USER, permissions[0])
-    updated_record = update_permissions_for_role(permission_id, permission="read_test_2")
+    updated_record = update_permissions_for_role(
+        permission_id, permission="read_test_2"
+    )
     assert updated_record["id"] == permission_id
 
     row = get_role_permission(permission_id)

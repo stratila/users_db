@@ -1,6 +1,6 @@
 from sqlalchemy import insert, select, update, delete
 
-from users_db.db import db_connection
+from users_db.db import db_execute, db_transaction
 from users_db.schema import Role, users
 from users_db.role_permissions import (
     ROLE_SUPER_ADMIN,
@@ -9,38 +9,37 @@ from users_db.role_permissions import (
 )
 
 
-@db_connection
-def create_user(first_name, middle_name, last_name, email, password, role, db_conn):
-    return insert(users).values(
-        first_name=first_name,
-        middle_name=middle_name,
-        last_name=last_name,
-        email=email,
-        password=password,
-        role=role,
+@db_transaction
+def create_user(
+    first_name, middle_name, last_name, email, password, role, db_conn=None
+):
+    return db_execute(
+        insert(users).values(
+            first_name=first_name,
+            middle_name=middle_name,
+            last_name=last_name,
+            email=email,
+            password=password,
+            role=role,
+        ),
+        db_conn=db_conn,
     )
 
 
-@db_connection
+@db_transaction
 def get_user(user_id, db_conn=None):
-    stmt = select(users).where(users.c.id == user_id)
-    rows = db_conn.execute(stmt)
-    rows = rows.mappings().one()
-    return dict(rows)
+    return db_execute(select(users).where(users.c.id == user_id), db_conn=db_conn)
 
 
-@db_connection
+@db_transaction
 def get_hashed_password_by_email(email, db_conn=None):
     stmt = select(
         users.c.id, users.c.email, users.c.password.label("hashed_password")
     ).where(users.c.email == email)
-    rows = db_conn.execute(stmt)
-    rows = rows.mappings().one()
-
-    return dict(rows)
+    return db_execute(stmt, db_conn=db_conn)
 
 
-@db_connection
+@db_transaction
 def get_users(
     user_id=None,
     user_ids=None,
@@ -68,31 +67,34 @@ def get_users(
     if role:
         stmt = stmt.where(users.c.role == role)
 
-    rows = db_conn.execute(stmt)
-    rows = [dict(row) for row in rows.mappings().all()]
+    rows = db_execute(stmt, db_conn=db_conn)
+    rows = [rows] if isinstance(rows, dict) else rows
     return rows
 
 
-@db_connection
+@db_transaction
 def update_user(
     user_id,
     db_conn=None,
     **values,
 ):
-    return update(users).where(users.c.id == user_id).values(**values)
+    stmt = update(users).where(users.c.id == user_id).values(**values)
+    return db_execute(stmt, db_conn=db_conn)
 
 
-@db_connection
+@db_transaction
 def delete_user(
     user_id,
     db_conn=None,
 ):
-    return delete(users).where(users.c.id == user_id)
+    stmt = delete(users).where(users.c.id == user_id)
+    return db_execute(stmt, db_conn=db_conn)
 
 
-@db_connection
+@db_transaction
 def bulk_delete_users(
     user_ids,
     db_conn=None,
 ):
-    return delete(users).where(users.c.id.in_(user_ids))
+    stmt = delete(users).where(users.c.id.in_(user_ids))
+    return db_execute(stmt, db_conn=db_conn)

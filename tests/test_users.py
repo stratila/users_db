@@ -1,8 +1,6 @@
 import pytest
-
-from sqlalchemy import create_engine, select, delete
-
-from users_db.config import get_postgres_uri
+from sqlalchemy import select, delete
+from users_db.errors import DatabaseError
 from users_db.schema import users
 from users_db.users import (
     create_user,
@@ -106,7 +104,7 @@ def test_get_users(db_connection):
             "middle_name": "E.",
             "last_name": "Doe",
             "role": "USER",
-            "email": "email@email.com",
+            "email": "email1@email.com",
             "password": "password",
         },
         {
@@ -114,7 +112,7 @@ def test_get_users(db_connection):
             "middle_name": "J.",
             "last_name": "Doe",
             "role": "USER",
-            "email": "email@email.com",
+            "email": "email2@email.com",
             "password": "password",
         },
     ]
@@ -222,18 +220,12 @@ def test_bulk_delete_users(db_connection):
 
 
 def test_bad_create_user(db_connection):
-    user_id = create_user(
-        first_name=None,
-        middle_name=None,
-        last_name=None,
-        email=None,
-        password=None,
-        role=None,
-    )
-    assert user_id is None
-    result = (
-        db_connection.execute(select(users).where(users.c.id == user_id))
-        .mappings()
-        .all()
-    )
-    assert len(result) == 0
+    with pytest.raises(DatabaseError):
+        create_user(
+            first_name=None,
+            middle_name=None,
+            last_name=None,
+            email=None,
+            password=None,
+            role=None,
+        )

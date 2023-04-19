@@ -17,7 +17,7 @@ role_permission = Table(
     Column("id", Integer, primary_key=True),
     Column("role", Enum(Role), nullable=False),
     Column("permission", String(100), nullable=False),
-    UniqueConstraint("role", "permission", name="role_permission_uq")
+    UniqueConstraint("role", "permission", name="role_permission_uq"),
 )
 
 users = Table(
