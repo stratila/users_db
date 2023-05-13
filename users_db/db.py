@@ -134,17 +134,20 @@ class db_transaction(base_transaction):
         return transaction.connection if transaction else None
 
     def open_connection(self):
-        # checks whether there is a transaction in the stack
-        transaction = (
-            thread_local.transaction_stack[-1]
-            if thread_local.transaction_stack
-            else None
-        )
-        if transaction:
-            self.connection = transaction.connection
+        try:
+            # checks whether there is a transaction in the stack
+            transaction = (
+                thread_local.transaction_stack[-1]
+                if thread_local.transaction_stack
+                else None
+            )
+            if transaction:
+                self.connection = transaction.connection
 
-        if self.connection is None:
-            self.connection = engine.connect()
+            if self.connection is None:
+                self.connection = engine.connect()
+        except SQLAlchemyError as err:
+            raise SqlAlchemyDatabaseError(err)
 
     def close_connection(self):
         if self.connection and not self.connection.closed:
