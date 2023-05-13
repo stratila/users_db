@@ -19,7 +19,14 @@ RUN pip install poetry==1.4.0
 RUN poetry export -f requirements.txt --output requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-FROM base AS development
 # install users_db as editable
 RUN pip install -e ./
+
+# set work directory
+WORKDIR /users_db
+
+FROM base AS development
 CMD [ "/scripts/migrate_start.sh" ]
+
+# TODO prod/test image to run in CI/CD pipeline 
+# with integration tests
