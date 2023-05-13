@@ -17,5 +17,5 @@ docker compose exec --no-TTY -e TESTDB=$TESTDB postgres sh -c '
 '
 
 # run tests
-docker compose exec --no-TTY -e DB_NAME=testdb db sh -c 'pytest tests --cov=/users_db --cov-report=html -vvv '$@
+docker compose exec --no-TTY -e DB_NAME=testdb db sh -c 'pytest /tests --cov=/users_db --cov-report=html -vvv '$@
 

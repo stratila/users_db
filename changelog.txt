@@ -22,3 +22,5 @@ v0.0.11  2023-05-04
     - add crud operations for role_permissions table
 v0.0.12  2023-19-04
     - add db_transaction decorator class, add common db exceptions
+v0.0.13  2023-13-05
+    - refactor role_permission update with csv logic, small fixes

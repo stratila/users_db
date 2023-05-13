@@ -1,12 +1,7 @@
 from sqlalchemy import insert, select, update, delete
 
 from users_db.db import db_execute, db_transaction
-from users_db.schema import Role, users
-from users_db.role_permissions import (
-    ROLE_SUPER_ADMIN,
-    ROLE_ADMIN,
-    ROLE_USER,
-)
+from users_db.schema import users
 
 
 @db_transaction

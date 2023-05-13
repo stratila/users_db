@@ -2,7 +2,9 @@
 *.egg-info
 *.egg
 .pytest_cache/
+.coverage
 __pycache__/
 venv/
 build/
 dist/
+.DS_Store

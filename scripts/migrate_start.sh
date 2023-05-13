@@ -1,6 +1,6 @@
 #!/bin/sh
 
-python scripts/check_postgres_accept_connections.py
+python /scripts/check_postgres_accept_connections.py
 alembic_upgrade 
-pytest tests
+pytest /tests
 tail -f /dev/null
