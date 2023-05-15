@@ -24,3 +24,5 @@ v0.0.12  2023-19-04
     - add db_transaction decorator class, add common db exceptions
 v0.0.13  2023-13-05
     - refactor role_permission update with csv logic, small fixes
+v0.0.14  2023-15-05
+    - change migration format
