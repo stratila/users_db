@@ -26,3 +26,5 @@ v0.0.13  2023-13-05
     - refactor role_permission update with csv logic, small fixes
 v0.0.14  2023-15-05
     - change migration format
+v0.0.14.1 2023-16-05
+    - add actions_history table
