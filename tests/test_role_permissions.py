@@ -187,9 +187,7 @@ def test_delete_role_permission(db_connection, role_permission_dataset):
     rows = get_role_permissions()
     assert len(rows) == len(role_permission_dataset)
     delete_role_permissions()
-    rows = db_connection.execute(
-        select(role_permission)
-    )
+    rows = db_connection.execute(select(role_permission))
     assert rows.rowcount == 0
 
 
