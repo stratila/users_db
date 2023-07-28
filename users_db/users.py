@@ -1,6 +1,7 @@
 from sqlalchemy import insert, select, update, delete
 
 from users_db.db import db_execute, db_transaction
+from users_db.pagination import paginate
 from users_db.schema import users
 
 
@@ -35,6 +36,7 @@ def get_hashed_password_by_email(email, db_conn=None):
 
 
 @db_transaction
+@paginate
 def get_users(
     user_id=None,
     user_ids=None,
@@ -44,6 +46,9 @@ def get_users(
     email=None,
     role=None,
     db_conn=None,
+    is_paginated=False,
+    page=None,
+    page_size=None,
 ):
     stmt = select(users)
 
@@ -61,10 +66,7 @@ def get_users(
         stmt = stmt.where(users.c.email == email)
     if role:
         stmt = stmt.where(users.c.role == role)
-
-    rows = db_execute(stmt, db_conn=db_conn)
-    rows = [rows] if isinstance(rows, dict) else rows
-    return rows
+    return stmt
 
 
 @db_transaction
