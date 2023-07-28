@@ -12,7 +12,6 @@ def test_pagination(users_data):
         users = get_users(
             user_ids=user_ids, is_paginated=True, page=page, page_size=PAGE_SIZE
         )
-        print(users)
         assert users["page_size"] >= len(users["items"])
         assert users["items_count"] == len(user_ids)
         assert users["page"] == page

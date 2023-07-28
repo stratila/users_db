@@ -30,7 +30,7 @@ def paginate(f):
             raise TypeError("f must return a sqlalchemy.sql.selectable.Select object")
 
         # calcualate limit and offset
-        limit = page_size 
+        limit = page_size
         offset = (page - 1) * page_size
 
         # Get full count of items
@@ -44,7 +44,6 @@ def paginate(f):
 
         # Get items for the current page
         subq_2 = query.limit(limit).offset(offset).alias("subq_2")
-        print(type(subq_2))
 
         select_stmt = select(
             literal(items_count).label("items_count"),
